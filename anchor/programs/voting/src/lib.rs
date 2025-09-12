@@ -8,18 +8,18 @@ declare_id!("FqzkXZdwYjurnUKetJCAvaUw5WAqbwzU6gZEwydeEfqS");
 pub mod Voting {
    use super::*;
     
-   pub fn intialise_poll(ctx:Context<IntitisePoll>,
+   pub fn intialise_poll(ctx:Context<IntitisePoll>
                          _poll_id:u64,
                          start_time:u64,
                          end_time:u64,
                          description:String,
                          name:String
-   ) ->Result<()> {
+   ) -> Result<()> {
 
-      ctx.accounts.poll_account.poll_name = name,
-      ctx.accounts.poll_account.poll_description = description,
-      ctx.accounts.poll_account.poll_voting_start = start_time,
-      ctx.accounts.poll_account.poll_voting_end = end_time,
+      ctx.accounts.poll_account.poll_name = name;
+      ctx.accounts.poll_account.poll_description = description;
+      ctx.accounts.poll_account.poll_voting_start = start_time;
+      ctx.accounts.poll_account.poll_voting_end = end_time;
 
       Ok(())
       
@@ -29,7 +29,7 @@ pub mod Voting {
                               _poll_id:u64,
                               candidate:String,
    
-   ) -< Result<()> {
+   ) -> Result<()> {
       
       ctx.accounts.candidate_account.name=candidate;
       ctx.accounts.poll_account.poll_option_index += 1;
@@ -37,10 +37,10 @@ pub mod Voting {
    }
 
    pub fn vote(ctx:Context<Vote>,_poll_id:u64, _candidate:String) -> Result <()> {
-      let candidate_account:  &mut ctx.accounts.candidate_account;
-      let current_time: Clock::get()?.unix_timestamp;
+      let candidate_account =  &mut ctx.accounts.candidate_account;
+      let current_time = Clock::get()?.unix_timestamp;
 
-      if current_time >(ctx.accounts.poll_voting_end as i64){
+      if current_time >(ctx.accounts.poll_account.poll_voting_end as i64){
 
          return Err(ErrorCode::VotingEnded.into());
 
@@ -55,9 +55,7 @@ pub mod Voting {
       OK(())
    }
 
-   pub fn poll_result()
-
-   pub fn cnadidate_info()
+ 
 
   
 
@@ -69,15 +67,16 @@ pub mod Voting {
 #[instruction(poll_id:u64)]
 pub struct IntitisePoll <'info> {
    #[account(mut)]
-   pub signer : Signer<'info>
+   pub signer : Signer<'info>,
    #[account(
       init_if_needed,
-      payer:Signer,
-      space:8 + PollAccount::INIT_SPACE,
-      seeds:[b"poll".as_ref(), poll_id.to_le_bytes().as_ref()],
+      payer=Signer,
+      space=8 + PollAccount::INIT_SPACE,
+      seeds=[b"poll".as_ref(), poll_id.to_le_bytes().as_ref()],
       bump
    )]
-   pub poll_account : Account<'info,PollAccount>
+   pub poll_account : Account<'info,PollAccount>,
+   pub system_program :Program<'info,System>,
 }
 
 
@@ -85,7 +84,7 @@ pub struct IntitisePoll <'info> {
 #[derive(Accounts)]
 #[instruction(poll_id:u64,candidate:String)]
 
-pub struct Intialise_candidate ('info) {
+pub struct Intialise_candidate <'info> {
    #[account(mut)]
    pub signer: Signer<'info>,
 
@@ -93,9 +92,9 @@ pub struct Intialise_candidate ('info) {
    
    #[account(
       init,
-      payer:signer,
-      space:8 + CandidateAccount::INIT_SPACE,
-      seeds:[poll_id.to_le_bytes().as_ref,candidate.as_ref()],
+      payer=signer,
+      space=8 + CandidateAccount::INIT_SPACE,
+      seeds=[poll_id.to_le_bytes().as_ref(),candidate.as_ref()],
       bump, 
    )]
 
@@ -106,7 +105,7 @@ pub struct Intialise_candidate ('info) {
 
 #[derive(Accounts)]
 #[instruction(poll_id:u64, candidate:String) ]
- pub struct Vote('info) {
+ pub struct Vote<'info> {
    #[account(mut)]
     pub signer : Signer<'info>,
 
@@ -120,7 +119,7 @@ pub struct Intialise_candidate ('info) {
 
     #[account(
       mut,
-      seeds:[poll_id.to_le_bytes().as_ref(),candidate.as_ref()],
+      seeds=[poll_id.to_le_bytes().as_ref(),candidate.as_ref()],
       bump
     )]
     pub candidate_account:Account<'info,CandidateAccount>
